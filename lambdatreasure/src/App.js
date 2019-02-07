@@ -112,7 +112,7 @@ class App extends Component {
     axios
       .post(`https://lambda-treasure-hunt.herokuapp.com/api/adv/take/`, 
 
-      { name: "Small Treasure" },
+      { "name": "Treasure" },
       
       { headers: 
         { Authorization: "Token 421139965c881b1e9ffe024b6233b338a12760f4" }, 
@@ -135,7 +135,7 @@ class App extends Component {
     axios
       .post(`https://lambda-treasure-hunt.herokuapp.com/api/adv/drop/`, 
 
-      { name: "Small Treasure" },
+      { "name": "treasure" },
       
       { headers: 
         { Authorization: "Token 421139965c881b1e9ffe024b6233b338a12760f4" }, 
@@ -152,6 +152,47 @@ class App extends Component {
       })
   }
 
+  sell = (e) => {
+    e.preventDefault();
+  
+    axios
+      .post(`https://lambda-treasure-hunt.herokuapp.com/api/adv/sell/`, 
+
+      { "name": "treasure", "confirm": "yes" },
+      
+      { headers: 
+        { Authorization: "Token 421139965c881b1e9ffe024b6233b338a12760f4" }, 
+      },
+
+      )
+
+      .then(response => {
+        this.setState({playerInfo: response.data})
+      })
+
+      .catch(error => {
+        console.error("Couldn't sell item", error);
+      })
+  }
+
+  autoRoam = (e) => {
+    e.preventDefault();
+
+    cooldown = this.state.roomInfo.cooldown;
+    exits = this.state.roomInfo.exits;
+    room = this.state.roomInfo.room_id;
+    
+
+    //determine which room we are standing in
+    //determine which exits are valid for this room
+    //try an unexplored exit
+    //log the new room coords and update the map with the new room
+    //repeat
+
+
+  }
+
+
 
 
   render() {
@@ -162,12 +203,15 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
 
           <p>
+            {this.state.playerInfo.name}<br />
+            {this.state.playerInfo.cooldown}<br />
+
+
             You are standing in room {this.state.roomInfo.room_id}.<br />
             Choose a direction to explore the next room.<br />
             {this.state.roomInfo.messages}<br />
             {this.state.roomInfo.title}<br />
             {this.state.roomInfo.items}<br />
-            {this.state.playerInfo.inventory}<br />
             {this.state.roomInfo.description}<br />
             Possible exits: {this.state.roomInfo.exits}<br />
             You'll need to rest for {this.state.roomInfo.cooldown} second(s) before you have the strength to move again.<br />
@@ -182,8 +226,8 @@ class App extends Component {
           <button onClick={e => {this.status(e);}}> Check status </button><br />
 
           <button onClick={e => {this.take(e);}}> Take Item </button><br />
+          <button onClick={e => {this.sell(e);}}> Sell Item </button><br />
           <button onClick={e => {this.drop(e);}}> Drop Item </button><br />
-
 
         
         </header>
