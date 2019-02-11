@@ -11,6 +11,18 @@ class App extends Component {
     super(props);
     this.state = {
 
+      mapGraph = {
+
+        0: {'n': '?', 's': '?', 'e': '?', 'w': '?'},
+    
+      },
+
+      mapCoords = {
+
+        0: '(60,60)',
+    
+      },
+
       roomInfo: {
 
         room_id: '',
@@ -44,13 +56,6 @@ class App extends Component {
     };
   }
 
-  mapGraph = {
-
-    0: {'n': '?', 's': '?', 'e': '?', 'w': '?', 'coords': '(60,60)'},
-
-
-  }
-
   componentDidMount() {
     axios
       .get("https://lambda-treasure-hunt.herokuapp.com/api/adv/init/", 
@@ -79,9 +84,7 @@ class App extends Component {
       
       { headers: 
         { Authorization: "Token 421139965c881b1e9ffe024b6233b338a12760f4" }, 
-      },
-
-      )
+      })
 
       .then(response => {
         this.setState({roomInfo: response.data})
@@ -100,9 +103,7 @@ class App extends Component {
       
       { headers: 
         { Authorization: "Token 421139965c881b1e9ffe024b6233b338a12760f4" }, 
-      },
-
-      )
+      })
 
       .then(response => {
         this.setState({playerInfo: response.data})
@@ -123,9 +124,7 @@ class App extends Component {
       
       { headers: 
         { Authorization: "Token 421139965c881b1e9ffe024b6233b338a12760f4" }, 
-      },
-
-      )
+      })
 
       .then(response => {
         this.setState({playerInfo: response.data})
@@ -146,9 +145,7 @@ class App extends Component {
       
       { headers: 
         { Authorization: "Token 421139965c881b1e9ffe024b6233b338a12760f4" }, 
-      },
-
-      )
+      })
 
       .then(response => {
         this.setState({playerInfo: response.data})
@@ -169,9 +166,7 @@ class App extends Component {
       
       { headers: 
         { Authorization: "Token 421139965c881b1e9ffe024b6233b338a12760f4" }, 
-      }, 
-
-      )
+      })
 
       .then(response => {
         this.setState({playerInfo: response.data})
@@ -199,7 +194,7 @@ class App extends Component {
 
   }
  */
-
+/* 
   traversal(mapGraph) {
 
     rooms = Object.keys(mapGraph).length;
@@ -222,7 +217,7 @@ class App extends Component {
 
     if (unexploredExits.length() > 0) {
 
-      
+
 
       
 
@@ -230,7 +225,7 @@ class App extends Component {
    
 
   }
-
+ */
 
   render() {
 
@@ -243,6 +238,7 @@ class App extends Component {
             {this.state.playerInfo.name}<br />
             {this.state.playerInfo.cooldown}<br />
             {this.state.roomInfo.coordinates}<br />
+            {this.state.playerInfo.inventory}
 
             You are standing in room {this.state.roomInfo.room_id}.<br />
             Choose a direction to explore the next room.<br />
