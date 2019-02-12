@@ -192,7 +192,7 @@ class App extends Component {
 
     cooldown = this.state.roomInfo.cooldown;
     exits = this.state.roomInfo.exits;
-    room = this.state.roomInfo.room_id;
+    current = this.state.roomInfo.room_id;
 
 
     //determine which room we are standing in
@@ -247,14 +247,14 @@ class App extends Component {
 
     getDirections = (path) => {
 
-      let currentRoom = path.shift();
+      let currentRoomExit = path.shift();
       let directions = [];
 
       for(room in path) {
 
-        for(exit in mapGraph[currentRoom]) {
+        for(exit in mapGraph[currentRoomExit]) {
 
-          if(room == mapGraph[currentRoom][exit]) {
+          if(room == mapGraph[currentRoomExit][exit]) {
 
             directions.push(exit);
 
@@ -264,6 +264,73 @@ class App extends Component {
 
       }
       return directions;
+
+    }
+
+    while(True) {
+
+      let currentRoomExits = mapGraph[room];
+      let unexploredExits = [];
+
+      for (direction in currentRoomExits) {
+
+        if(currentRoomExits[direction] == '?') {
+
+          unexploredExits.push(direction);
+
+        }
+
+      }
+
+      if(unexploredExits.length() > 0) {
+
+        let firstExit = unexploredExits[0];
+
+        traversalPath.push(firstExit);
+
+        let previousRoomID = room;
+        /* need to implement cooldown wait */
+        move(firstExit);
+
+        let exits = {};
+
+        if(!(room in mapGraph)) {
+
+          for(exit in currentRoomExits) {
+
+            exits[exit] = '?';
+
+          }
+
+          mapGraph[room] = exits;
+
+        }
+
+        mapGraph[previousRoomID][firstExit] = room;
+        mapGraph[room][inverseDirection[firstExit]] = previousRoomID;
+
+      } else {
+
+        let backtrack = bfs(room);
+
+        if(backtrack !== None) {
+          
+          for(direction in getDirections(backtrack)) {
+
+            traversalPath.push(direction)
+
+            /* need to implement cooldown timer */
+            move(direction);
+
+          }
+
+        } else {
+
+          break
+          
+        }
+
+      }
 
     }
 
@@ -277,9 +344,9 @@ class App extends Component {
 
     rooms = Object.keys(mapGraph).length;
 
-    currentRoom = this.state.roomInfo.room_id;
+    currentRoomExit = this.state.roomInfo.room_id;
 
-    currentExits = mapGraph[currentRoom];
+    currentExits = mapGraph[currentRoomExit];
 
     unexploredExits = [];
 
