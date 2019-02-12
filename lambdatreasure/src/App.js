@@ -200,6 +200,9 @@ class App extends Component {
     //try an unexplored exit
     //log the new room coords and update the map with the new room
     //repeat
+    let inverseDirection = {"n": "s", "s": "n", "w": "e", "e": "w"};
+    let traversalPath = [];
+
     bfs = (starting_node) => {
 
       let queue = [];
@@ -214,28 +217,57 @@ class App extends Component {
 
         if ( !visited.includes(v) ) {
 
-          visited.push(v)
+          visited.push(v);
+
           for(exit in mapGraph[v]) {
+
             if(mapGraph[v][exit] == '?') {
               return path;
             }
+
           }
 
           for(exitDirection in mapGraph[v]) {
 
             let newPath = [path];
-            newPath.push(mapGraph[v][exitDirection])
-            queue.push(newPath)
+            newPath.push(mapGraph[v][exitDirection]);
+            queue.push(newPath);
 
           }
 
         } else {
+
           return None;
+
         }
 
       }
 
     }
+
+    getDirections = (path) => {
+
+      let currentRoom = path.shift();
+      let directions = [];
+
+      for(room in path) {
+
+        for(exit in mapGraph[currentRoom]) {
+
+          if(room == mapGraph[currentRoom][exit]) {
+
+            directions.push(exit);
+
+          }
+
+        }
+
+      }
+      return directions;
+
+    }
+
+
 
   }
  
