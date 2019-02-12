@@ -187,12 +187,12 @@ class App extends Component {
 
 
 
-  buildGraph = (e) => {
+ buildGraph = (e) => {
     e.preventDefault();
 
-    cooldown = this.state.roomInfo.cooldown;
-    exits = this.state.roomInfo.exits;
-    current = this.state.roomInfo.room_id;
+    const cooldown = this.state.roomInfo.cooldown;
+    const exits = this.state.roomInfo.exits;
+    const current = this.state.roomInfo.room_id;
 
 
     //determine which room we are standing in
@@ -203,41 +203,43 @@ class App extends Component {
     let inverseDirection = {"n": "s", "s": "n", "w": "e", "e": "w"};
     let traversalPath = [];
 
-    bfs = (starting_node) => {
+    let bfs = (starting_node) => {
 
       let queue = [];
       let visited = [];
 
       queue.push(starting_node)
 
-      while(queue.length() > 0) {
+      while(queue.length > 0) {
 
-        let path = queue.shift();
+        queue.shift();
+
+        let path = queue;
         let v = path.slice(-1).pop();
 
         if ( !visited.includes(v) ) {
 
           visited.push(v);
 
-          for(exit in mapGraph[v]) {
+          for(let exit in this.state.mapGraph[v]) {
 
-            if(mapGraph[v][exit] == '?') {
+            if(this.state.mapGraph[v][exit] == '?') {
               return path;
             }
 
           }
 
-          for(exitDirection in mapGraph[v]) {
+          for(let exitDirection in this.state.mapGraph[v]) {
 
             let newPath = [path];
-            newPath.push(mapGraph[v][exitDirection]);
+            newPath.push(this.state.mapGraph[v][exitDirection]);
             queue.push(newPath);
 
           }
 
         } else {
 
-          return None;
+          return null;
 
         }
 
@@ -245,16 +247,16 @@ class App extends Component {
 
     }
 
-    getDirections = (path) => {
+    let getDirections = (path) => {
 
-      let currentRoomExit = path.shift();
+      let currentRoomExit = path[0]
       let directions = [];
 
-      for(room in path) {
+      for(let room in path) {
 
-        for(exit in mapGraph[currentRoomExit]) {
+        for(let exit in this.state.mapGraph[currentRoomExit]) {
 
-          if(room == mapGraph[currentRoomExit][exit]) {
+          if(room == this.state.mapGraph[currentRoomExit][exit]) {
 
             directions.push(exit);
 
@@ -267,12 +269,12 @@ class App extends Component {
 
     }
 
-    while(True) {
+    while(true) {
 
-      let currentRoomExits = mapGraph[room];
+      let currentRoomExits = this.state.mapGraph[this.room];
       let unexploredExits = [];
 
-      for (direction in currentRoomExits) {
+      for (let direction in currentRoomExits) {
 
         if(currentRoomExits[direction] == '?') {
 
@@ -282,52 +284,52 @@ class App extends Component {
 
       }
 
-      if(unexploredExits.length() > 0) {
+      if(unexploredExits.length > 0) {
 
         let firstExit = unexploredExits[0];
 
         traversalPath.push(firstExit);
 
-        let previousRoomID = room;
-        /* need to implement cooldown wait */
-        move(firstExit);
+        let previousRoomID = this.room;
+        //need to implement cooldown wait 
+        this.move(firstExit);
 
         let exits = {};
 
-        if(!(room in mapGraph)) {
+        if(!(this.room in this.state.mapGraph)) {
 
-          for(exit in currentRoomExits) {
+          for(let exit in currentRoomExits) {
 
             exits[exit] = '?';
 
           }
 
-          mapGraph[room] = exits;
+          this.state.mapGraph[this.room] = exits;
 
         }
 
-        mapGraph[previousRoomID][firstExit] = room;
-        mapGraph[room][inverseDirection[firstExit]] = previousRoomID;
+        this.state.mapGraph[previousRoomID][firstExit] = this.room;
+        this.state.mapGraph[this.room][inverseDirection[firstExit]] = this.previousRoomID;
 
       } else {
 
-        let backtrack = bfs(room);
+        let backtrack = bfs(this.room);
 
-        if(backtrack !== None) {
+        if(backtrack !== null) {
           
-          for(direction in getDirections(backtrack)) {
+          for(let direction in getDirections(backtrack)) {
 
-            traversalPath.push(direction)
+            traversalPath.push(direction);
 
-            /* need to implement cooldown timer */
-            move(direction);
+            //need to implement cooldown timer 
+            this.move(direction);
 
           }
 
         } else {
 
-          break
-          
+          break;
+
         }
 
       }
@@ -402,6 +404,7 @@ class App extends Component {
           <button onClick={e => {this.move(e, "w");}}>Move West</button><br />
 
           <button onClick={e => {this.status(e);}}> Check status </button><br />
+          <button onClick={e => {this.buildGraph(e);}}> Build Graph </button><br />
 
           <button onClick={e => {this.take(e);}}> Take Item </button><br />
           <button onClick={e => {this.sell(e);}}> Sell Item </button><br />
