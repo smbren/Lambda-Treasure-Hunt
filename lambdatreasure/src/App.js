@@ -11,18 +11,6 @@ class App extends Component {
     super(props);
     this.state = {
 
-      mapGraph = {
-
-        0: {'n': '?', 's': '?', 'e': '?', 'w': '?'},
-    
-      },
-
-      mapCoords = {
-
-        0: '(60,60)',
-    
-      },
-
       roomInfo: {
 
         room_id: '',
@@ -51,7 +39,27 @@ class App extends Component {
         errors: [],
         messages: []
 
-      }
+      },
+
+      mapGraph: {
+
+        0: {'n': '10', 's': '2', 'e': '4', 'w': '1'},
+        10: {'n': '?', 's': '0', 'w': '?'},
+        4: {'n': '?', 'e': '?', 'w': '0'},
+        1: {'n': '?', 's': '?', 'e': '0', 'w': '?'},
+        2: {'n': '0', 's': '?', 'e': '?'}, 
+
+      },
+
+      mapCoords: {
+
+        0: [60,60],
+        10: [60,61],
+        4: [61,60],
+        1: [59,60],
+        2: [60,59],
+    
+      },
   
     };
   }
@@ -176,8 +184,10 @@ class App extends Component {
         console.error("Couldn't sell item", error);
       })
   }
-/* 
-  autoRoam = (e) => {
+
+
+
+  buildGraph = (e) => {
     e.preventDefault();
 
     cooldown = this.state.roomInfo.cooldown;
@@ -190,10 +200,46 @@ class App extends Component {
     //try an unexplored exit
     //log the new room coords and update the map with the new room
     //repeat
+    bfs = (starting_node) => {
 
+      let queue = [];
+      let visited = [];
+
+      queue.push(starting_node)
+
+      while(queue.length() > 0) {
+
+        let path = queue.shift();
+        let v = path.slice(-1).pop();
+
+        if ( !visited.includes(v) ) {
+
+          visited.push(v)
+          for(exit in mapGraph[v]) {
+            if(mapGraph[v][exit] == '?') {
+              return path;
+            }
+          }
+
+          for(exitDirection in mapGraph[v]) {
+
+            let newPath = [path];
+            newPath.push(mapGraph[v][exitDirection])
+            queue.push(newPath)
+
+          }
+
+        } else {
+          return None;
+        }
+
+      }
+
+    }
 
   }
- */
+ 
+
 /* 
   traversal(mapGraph) {
 
