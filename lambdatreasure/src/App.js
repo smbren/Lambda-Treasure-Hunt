@@ -43,26 +43,25 @@ class App extends Component {
 
       mapGraph: {
 
-        0: {'n': '10', 's': '2', 'e': '4', 'w': '1'},
-        10: {'n': '?', 's': '0', 'w': '?'},
-        4: {'n': '?', 'e': '?', 'w': '0'},
-        1: {'n': '?', 's': '?', 'e': '0', 'w': '?'},
-        2: {'n': '0', 's': '?', 'e': '?'}, 
+        0: {'n': '?', 'e': '?', 's': '?', 'w': '?'}
 
       },
+
+      graph: {'n': '?', 'e': '?', 's': '?', 'w': '?'},
 
       mapCoords: {
 
-        0: [60,60],
-        10: [60,61],
-        4: [61,60],
-        1: [59,60],
-        2: [60,59],
-    
+        0: "(60,60)",
+
       },
+
   
     };
   }
+
+/*   {"room_id": 13, "title": "A misty room", "description": "You are standing on grass and surrounded by a dense mist. You can barely make out the exits in any direction.", 
+  "coordinates": "(62,60)", "elevation": 0, "terrain": "NORMAL", "players": [], "items": [], "exits": ["e", "w"], 
+  "cooldown": 9.0, "errors": ["You cannot move that way: +5s CD"], "messages": []} */
 
   componentDidMount() {
     axios
@@ -73,6 +72,15 @@ class App extends Component {
       })
 
       .then(response => {
+        localStorage.clear()
+        this.setState(() => ({ room_ID: response.data.room_id }));
+        localStorage.setItem('graph', JSON.stringify(this.state.mapGraph))
+        localStorage.setItem('mapCoords', JSON.stringify(this.state.mapCoords))
+        localStorage.setItem('roomID', JSON.stringify(response.data.room_id))
+        localStorage.setItem('coords', JSON.stringify(response.data.coordinates))
+        localStorage.setItem('exits', JSON.stringify(response.data.exits))
+        localStorage.setItem('cooldown', JSON.stringify(response.data.cooldown))
+        console.log(localStorage)
         this.setState(() => ({ roomInfo: response.data }));
       })
 
@@ -95,9 +103,13 @@ class App extends Component {
       })
 
       .then(response => {
+        localStorage.setItem('roomID', JSON.stringify(response.data.room_id))
+        localStorage.setItem('coords', JSON.stringify(response.data.coordinates))
+        localStorage.setItem('exits', JSON.stringify(response.data.exits))
+        localStorage.setItem('cooldown', JSON.stringify(response.data.cooldown))
         this.setState({roomInfo: response.data})
       })
-
+  
       .catch(error => {
         console.error("Invalid move.", error);
       })
@@ -184,15 +196,84 @@ class App extends Component {
         console.error("Couldn't sell item", error);
       })
   }
+ 
+  bfs = (starting_node) => {
 
+    let queue = [];
+    let visited = [];
 
+    queue.push(starting_node)
 
- buildGraph = (e) => {
+    while(queue.length > 0) {
+
+      queue.shift();
+
+      let path = queue;
+      let v = path.slice(-1).pop();
+
+      if ( !visited.includes(v) ) {
+
+        visited.push(v);
+
+        for(let exit in this.state.mapGraph[v]) {
+
+          if(this.state.mapGraph[v][exit] === '?') {
+            return path;
+          }
+
+        }
+
+        for(let exitDirection in this.state.mapGraph[v]) {
+
+          let newPath = [path];
+          newPath.push(this.state.mapGraph[v][exitDirection]);
+          queue.push(newPath);
+
+        }
+
+      } else {
+
+        return null;
+
+      }
+
+    }
+
+  }
+
+  getDirections = (path) => {
+
+    let currentRoomExit = path[0]
+    let directions = [];
+
+    for(let room in path) {
+
+      for(let exit in this.state.mapGraph[currentRoomExit]) {
+
+        if(room === this.state.mapGraph[currentRoomExit][exit]) {
+
+          directions.push(exit);
+
+        }
+
+      }
+
+    }
+    return directions;
+
+  } 
+
+  buildGraph = (e) => {
     e.preventDefault();
 
+    let map = JSON.parse(localStorage.getItem('graph'))
+    let currentRoom = this.state.roomInfo.room_id; 
+
+    let exits = this.state.roomInfo.exits;
+
+
     const cooldown = this.state.roomInfo.cooldown;
-    const exits = this.state.roomInfo.exits;
-    const current = this.state.roomInfo.room_id;
+    exits = this.state.roomInfo.exits;
 
 
     //determine which room we are standing in
@@ -203,80 +284,14 @@ class App extends Component {
     let inverseDirection = {"n": "s", "s": "n", "w": "e", "e": "w"};
     let traversalPath = [];
 
-    let bfs = (starting_node) => {
-
-      let queue = [];
-      let visited = [];
-
-      queue.push(starting_node)
-
-      while(queue.length > 0) {
-
-        queue.shift();
-
-        let path = queue;
-        let v = path.slice(-1).pop();
-
-        if ( !visited.includes(v) ) {
-
-          visited.push(v);
-
-          for(let exit in this.state.mapGraph[v]) {
-
-            if(this.state.mapGraph[v][exit] == '?') {
-              return path;
-            }
-
-          }
-
-          for(let exitDirection in this.state.mapGraph[v]) {
-
-            let newPath = [path];
-            newPath.push(this.state.mapGraph[v][exitDirection]);
-            queue.push(newPath);
-
-          }
-
-        } else {
-
-          return null;
-
-        }
-
-      }
-
-    }
-
-    let getDirections = (path) => {
-
-      let currentRoomExit = path[0]
-      let directions = [];
-
-      for(let room in path) {
-
-        for(let exit in this.state.mapGraph[currentRoomExit]) {
-
-          if(room == this.state.mapGraph[currentRoomExit][exit]) {
-
-            directions.push(exit);
-
-          }
-
-        }
-
-      }
-      return directions;
-
-    }
-
     while(true) {
 
-      let currentRoomExits = this.state.mapGraph[this.room];
+      let currentRoomExits = map[currentRoom];
       let unexploredExits = [];
 
       for (let direction in currentRoomExits) {
 
-        if(currentRoomExits[direction] == '?') {
+        if(currentRoomExits[direction] === '?') {
 
           unexploredExits.push(direction);
 
@@ -290,13 +305,13 @@ class App extends Component {
 
         traversalPath.push(firstExit);
 
-        let previousRoomID = this.room;
+        let previousRoomID = this.state.roomInfo.room_id;
         //need to implement cooldown wait 
         this.move(firstExit);
 
         let exits = {};
 
-        if(!(this.room in this.state.mapGraph)) {
+        if(!(currentRoom in map)) {
 
           for(let exit in currentRoomExits) {
 
@@ -304,20 +319,21 @@ class App extends Component {
 
           }
 
-          this.state.mapGraph[this.room] = exits;
+          map[currentRoom] = exits;
 
         }
 
-        this.state.mapGraph[previousRoomID][firstExit] = this.room;
-        this.state.mapGraph[this.room][inverseDirection[firstExit]] = this.previousRoomID;
+        map[previousRoomID][firstExit] = currentRoom;
+        map[currentRoom][inverseDirection[firstExit]] = previousRoomID;
 
       } else {
 
-        let backtrack = bfs(this.room);
+        let backtrackPath = this.bfs(currentRoom);
+        let directions = this.getDirections(backtrackPath)
 
-        if(backtrack !== null) {
+        if(backtrackPath !== null) {
           
-          for(let direction in getDirections(backtrack)) {
+          for(let direction in directions) {
 
             traversalPath.push(direction);
 
@@ -339,7 +355,7 @@ class App extends Component {
 
 
   }
- 
+  
 
 /* 
   traversal(mapGraph) {
@@ -354,7 +370,7 @@ class App extends Component {
 
     for (direction in currentExits) {
 
-      if (currentExits[direction] == '?') {
+      if (currentExits[direction] === '?') {
 
         unexploredExits.push(direction);
 
@@ -374,6 +390,36 @@ class App extends Component {
   }
  */
 
+ //instructor example:
+ /*  this.counter = this.counter.bind(this)
+
+ sleep = (ms) => {
+   return new Promise(resolve => setTimeout(resolve, ms))
+ }
+
+ async counter() {
+
+  while(true) {
+
+    localStorage.setItem('count', JSON.stringify(this.state.count))
+    //traversal automation goes here
+    await this.sleep(this.state.roomInfo.cooldown * 1000)
+
+    this.setState({count: this.state.count + 1})
+
+    if (this.state.count > 20) {
+      break;
+    }
+    //break out of loop when all rooms have been explored
+
+  }
+
+ }
+
+ const count = localStorage.getItem("count") */
+ //instructor example
+
+
   render() {
 
     return (
@@ -386,13 +432,10 @@ class App extends Component {
             {this.state.playerInfo.cooldown}<br />
             {this.state.roomInfo.coordinates}<br />
             {this.state.playerInfo.inventory}
-
             You are standing in room {this.state.roomInfo.room_id}.<br />
-            Choose a direction to explore the next room.<br />
             {this.state.roomInfo.messages}<br />
             {this.state.roomInfo.title}<br />
             {this.state.roomInfo.items}<br />
-            {this.state.roomInfo.description}<br />
             Possible exits: {this.state.roomInfo.exits}<br />
             You'll need to rest for {this.state.roomInfo.cooldown} second(s) before you have the strength to move again.<br />
           </p>
