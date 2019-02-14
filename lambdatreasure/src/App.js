@@ -72,8 +72,6 @@ class App extends Component {
       })
 
       .then(response => {
-        localStorage.clear()
-        this.setState(() => ({ room_ID: response.data.room_id }));
         localStorage.setItem('graph', JSON.stringify(this.state.mapGraph))
         localStorage.setItem('mapCoords', JSON.stringify(this.state.mapCoords))
         localStorage.setItem('roomID', JSON.stringify(response.data.room_id))
@@ -92,6 +90,27 @@ class App extends Component {
 
   move = (e, direction) => {
     e.preventDefault();
+/* 
+    let map = JSON.parse(localStorage.getItem('graph'))
+    let roomID = JSON.parse(localStorage.getItem('roomID'))
+    let exits = JSON.parse(localStorage.getItem('exits'))
+    let coords = JSON.parse(localStorage.getItem('coords'))
+
+    let exitList = {}
+
+    if (!(roomID in map)) {
+
+      exits.forEach(function(exit){
+
+        exitList[exit] = '?'
+
+      });
+
+      map[roomID] = exitList
+
+    }
+
+    localStorage.setItem('graph', JSON.stringify(map)) */
   
     axios
       .post(`https://lambda-treasure-hunt.herokuapp.com/api/adv/move/`, 
@@ -113,6 +132,27 @@ class App extends Component {
       .catch(error => {
         console.error("Invalid move.", error);
       })
+  }
+
+  autoRoam = (e) => {
+    e.preventDefault();
+    let inverseDirection = {"n": "s", "s": "n", "w": "e", "e": "w"};
+
+    let currentRoomExits = this.state.roomInfo.exits;
+    let index = Math.floor(Math.random() * currentRoomExits.length);
+
+      while(true) {
+        if(currentRoomExits.length > 1) {
+
+          setInterval(this.move(e, currentRoomExits[index]), 10000);
+
+        } else {
+
+          setInterval(this.move(e, inverseDirection[currentRoomExits[0]]), 10000);
+
+        }
+      }
+
   }
 
   status = (e) => {
@@ -241,7 +281,7 @@ class App extends Component {
 
   }
 
-  getDirections = (path) => {
+/*   getDirections = (path) => {
 
     let currentRoomExit = path[0]
     let directions = [];
@@ -261,7 +301,7 @@ class App extends Component {
     }
     return directions;
 
-  } 
+  }  */
 
   buildGraph = (e) => {
     e.preventDefault();
@@ -269,11 +309,11 @@ class App extends Component {
     let map = JSON.parse(localStorage.getItem('graph'))
     let currentRoom = this.state.roomInfo.room_id; 
 
-    let exits = this.state.roomInfo.exits;
+   /*  let exits = this.state.roomInfo.exits;
 
 
-    const cooldown = this.state.roomInfo.cooldown;
-    exits = this.state.roomInfo.exits;
+    const cooldown = this.state.roomInfo.cooldown; */
+    //let exits = this.state.roomInfo.exits;
 
 
     //determine which room we are standing in
@@ -329,11 +369,11 @@ class App extends Component {
       } else {
 
         let backtrackPath = this.bfs(currentRoom);
-        let directions = this.getDirections(backtrackPath)
 
         if(backtrackPath !== null) {
+          //let directions = this.getDirections(backtrackPath)
           
-          for(let direction in directions) {
+          for(let direction in backtrackPath) {
 
             traversalPath.push(direction);
 
@@ -351,8 +391,6 @@ class App extends Component {
       }
 
     }
-
-
 
   }
   
@@ -447,7 +485,7 @@ class App extends Component {
           <button onClick={e => {this.move(e, "w");}}>Move West</button><br />
 
           <button onClick={e => {this.status(e);}}> Check status </button><br />
-          <button onClick={e => {this.buildGraph(e);}}> Build Graph </button><br />
+          <button onClick={e => {this.autoRoam(e);}}> Auto Roam </button><br />
 
           <button onClick={e => {this.take(e);}}> Take Item </button><br />
           <button onClick={e => {this.sell(e);}}> Sell Item </button><br />
